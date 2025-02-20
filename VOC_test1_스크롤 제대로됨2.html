@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOC Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: gray;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .voc-container {
+            width: 90vw;
+            height: 90vh;
+            background: black;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-y: auto;
+            position: relative;
+            font-size: 50px;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .voc-container::-webkit-scrollbar {
+            display: none;
+        }
+        .voc {
+            white-space: pre-line;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="fontSize">글자 크기:</label>
+        <input type="range" id="fontSize" min="20" max="150" value="50" oninput="adjustFontSize(this.value)">
+        
+        <label for="lineHeight">줄간격:</label>
+        <select id="lineHeight" onchange="adjustLineHeight(this.value)">
+            <option value="1">1</option>
+            <option value="1.5" selected>1.5</option>
+            <option value="2">2</option>
+            <option value="2.5">2.5</option>
+            <option value="3">3</option>
+        </select>
+    </div>
+    
+    <div class="voc-container" id="vocContainer">
+        <div class="voc" id="vocDisplay"></div>
+    </div>
+
+    <script>
+        const vocData = [
+            { title: "친절한 상담이 인상적이었어요!", body: "매장 직원이 매우 친절해서 기분이 좋았습니다. 차량 옵션 하나하나를 꼼꼼하게 설명해 주셨습니다.", date: "2025-02-20", source: "고객 리뷰" },
+            { title: "매장 대기가 너무 길었어요.", body: "대기 시간이 길었고, 편하게 기다릴 수 있는 공간이 부족했습니다.", date: "2025-02-19", source: "온라인 피드백" },
+            { title: "차량 옵션 설명이 부족했습니다.", body: "차량 구매 전 다양한 옵션에 대한 자세한 설명이 부족했습니다.", date: "2025-02-18", source: "설문 조사" }
+        ];
+
+        let vocIndex = 0;
+        let container = document.getElementById("vocDisplay");
+        let vocContainer = document.getElementById("vocContainer");
+
+        async function displayVOC() {
+            while (true) {
+                container.innerHTML = "";
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                let titleElement = document.createElement("div");
+                titleElement.style.fontWeight = "bold";
+                let bodyElement = document.createElement("div");
+                bodyElement.style.marginTop = "10px";
+                let footerElement = document.createElement("div");
+                footerElement.style.marginTop = "20px";
+                footerElement.style.fontSize = "45px";
+                footerElement.style.textAlign = "right";
+                
+                container.appendChild(titleElement);
+                container.appendChild(bodyElement);
+                container.appendChild(footerElement);
+                
+                await typeText(vocData[vocIndex].title, titleElement);
+                await typeText("\n", bodyElement, 500);
+                await typeText(vocData[vocIndex].body, bodyElement, true);
+                footerElement.innerText = `${vocData[vocIndex].date} | ${vocData[vocIndex].source}`;
+                
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                vocIndex = (vocIndex + 1) % vocData.length;
+            }
+        }
+
+        function typeText(text, element, autoScroll = false, delay = 50) {
+            return new Promise(resolve => {
+                let i = 0;
+                function typing() {
+                    if (i < text.length) {
+                        element.innerHTML += text[i];
+                        i++;
+                        if (autoScroll) {
+                            vocContainer.scrollTop = vocContainer.scrollHeight;
+                        }
+                        setTimeout(typing, delay);
+                    } else {
+                        resolve();
+                    }
+                }
+                typing();
+            });
+        }
+
+        function adjustFontSize(size) {
+            vocContainer.style.fontSize = size + "px";
+        }
+
+        function adjustLineHeight(height) {
+            vocContainer.style.lineHeight = height;
+        }
+
+        displayVOC();
+    </script>
+</body>
+</html>
